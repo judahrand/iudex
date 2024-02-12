@@ -7,13 +7,14 @@ license = "Apache-2.0"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 pyarrow = "^15.0.0"
 typing-extensions = { version = "^4.8", markers = "python_version < '3.12'" }
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.1.6"
 pytest = "^7.4.3"
+pandas = "^2.2.0"
 
 [build-system]
 requires = ["poetry-core"]
