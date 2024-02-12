@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "iudex"
+version = "0.1.0"
+description = "A data validation library built around Python's Dataframe API standard."
+authors = ["Judah Rand <17158624+judahrand@users.noreply.github.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pyarrow = "^15.0.0"
+typing-extensions = { version = "^4.8", markers = "python_version < '3.12'" }
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.1.6"
+pytest = "^7.4.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
