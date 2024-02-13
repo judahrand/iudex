@@ -1,31 +1,32 @@
 import dataclasses
-from abc import ABC, abstractmethod
 from collections.abc import Set
-from typing import Any
+from typing import Any, Protocol
 
 import pyarrow
 import pyarrow.compute
+import ibis.expr.types
 
 
-class Check(ABC):
-    @abstractmethod
-    def __call__(self, array: pyarrow.Array) -> bool:
+class Check(Protocol):
+    def __call__(self, column: ibis.expr.types.Column) -> bool:
         ...
 
 
 @dataclasses.dataclass(frozen=True)
 class Unique(Check):
-    def __call__(self, array: pyarrow.Array) -> bool:
-        return len(pyarrow.compute.unique(array)) == len(array)
+    def __call__(self, column: ibis.expr.types.Column) -> bool:
+        return pyarrow.compute.all(
+            (column.nunique() == column.count()).to_pyarrow(),
+        ).as_py()
 
 
 @dataclasses.dataclass(frozen=True)
 class Greater(Check):
     value: Any
 
-    def __call__(self, array: pyarrow.Array) -> bool:
+    def __call__(self, column: ibis.expr.types.Column) -> bool:
         return pyarrow.compute.all(
-            pyarrow.compute.greater(array, self.value),
+            (column > ibis.literal(self.value)).min().to_pyarrow(),
         ).as_py()
 
 
@@ -33,9 +34,9 @@ class Greater(Check):
 class GreaterEqual(Check):
     value: Any
 
-    def __call__(self, array: pyarrow.Array) -> bool:
+    def __call__(self, column: ibis.expr.types.Column) -> bool:
         return pyarrow.compute.all(
-            pyarrow.compute.greater_equal(array, self.value),
+            (column >= ibis.literal(self.value)).min().to_pyarrow(),
         ).as_py()
 
 
@@ -43,9 +44,9 @@ class GreaterEqual(Check):
 class Less(Check):
     value: Any
 
-    def __call__(self, array: pyarrow.Array) -> bool:
+    def __call__(self, column: ibis.expr.types.Column) -> bool:
         return pyarrow.compute.all(
-            pyarrow.compute.less(array, self.value),
+            (column < ibis.literal(self.value)).min().to_pyarrow(),
         ).as_py()
 
 
@@ -53,9 +54,9 @@ class Less(Check):
 class LessEqual(Check):
     value: Any
 
-    def __call__(self, array: pyarrow.Array) -> bool:
+    def __call__(self, column: ibis.expr.types.Column) -> bool:
         return pyarrow.compute.all(
-            pyarrow.compute.less_equal(array, self.value),
+            (column <= ibis.literal(self.value)).min().to_pyarrow(),
         ).as_py()
 
 
@@ -68,13 +69,9 @@ class IsIn(Check):
         if not self.values:
             raise ValueError("Value set must contain at least one value.")
 
-    def __call__(self, array: pyarrow.Array) -> bool:
+    def __call__(self, column: ibis.expr.types.Column) -> bool:
         return pyarrow.compute.all(
-            pyarrow.compute.is_in(
-                array,
-                pyarrow.array(self.values),
-                skip_nulls=self.skip_nulls,
-            ),
+            column.isin(ibis.literal(self.values)).min().to_pyarrow(),
         ).as_py()
 
 
@@ -87,11 +84,7 @@ class NotIn(Check):
         if not self.values:
             raise ValueError("Value set must contain at least one value.")
 
-    def __call__(self, array: pyarrow.Array) -> bool:
-        return not pyarrow.compute.any(
-            pyarrow.compute.is_in(
-                array,
-                pyarrow.array(self.values),
-                skip_nulls=self.skip_nulls,
-            ),
+    def __call__(self, column: ibis.expr.types.Column) -> bool:
+        return pyarrow.compute.all(
+            column.notin(ibis.literal(self.values)).min().to_pyarrow(),
         ).as_py()

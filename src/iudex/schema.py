@@ -4,36 +4,40 @@ import dataclasses
 from collections.abc import Set
 
 import pyarrow
+import ibis.expr.datatypes
 
 from .checks import Check
 
 
+@dataclasses.dataclass(frozen=True)
 class Schema:
     """A schema for a DataFrame."""
 
-    def __init__(self, *fields: Field) -> None:
-        self.fields = fields
+    fields: Set[Field]
 
-    def to_arrow(self) -> pyarrow.Schema:
-        """Convert to an Arrow schema."""
-        return pyarrow.schema(
-            [field.to_arrow() for field in self.fields],
+    def to_ibis(self) -> ibis.expr.schema.Schema:
+        """Convert to an Ibis schema."""
+        return ibis.Schema(
+            {field.name: field.data_type for field in self.fields},
         )
 
+    def to_pyarrow(self) -> pyarrow.Schema:
+        """Convert to a PyArrow schema."""
+        return pyarrow.schema([field.to_pyarrow() for field in self.fields])
 
-@dataclasses.dataclass
+
+@dataclasses.dataclass(frozen=True)
 class Field:
     """A field in a schema."""
 
     name: str
-    data_type: pyarrow.DataType
-    nullable: bool = True
+    data_type: ibis.expr.datatypes.DataType
     checks: Set[Check] = dataclasses.field(default_factory=set)
 
-    def to_arrow(self) -> pyarrow.Field:
-        """Convert to an Arrow field."""
+    def to_pyarrow(self) -> pyarrow.Field:
+        """Convert to an PyArrow field."""
         return pyarrow.field(
             self.name,
-            self.data_type,
-            nullable=self.nullable,
+            self.data_type.to_pyarrow(),
+            nullable=self.data_type.nullable,
         )

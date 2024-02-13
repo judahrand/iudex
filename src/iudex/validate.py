@@ -3,6 +3,7 @@ from typing import TypeVar
 import pyarrow
 import pyarrow.dataset
 import pyarrow.interchange
+import ibis
 
 from .dataframe_protocol import DataFrame
 from .schema import Schema
@@ -31,26 +32,27 @@ def validate_dataframe(
 def validate_pyarrow(
     data: _ArrowT,
     schema: Schema,
+    cast: bool = False,
 ) -> _ArrowT:
     """Validate a Table against a schema."""
-    if not data.schema.equals(schema.to_arrow()):
+    target_schema = schema.to_ibis()
+    table = ibis.memtable(data)
+
+    if cast:
+        table = table.cast(target_schema)
+
+    if not set(table.schema().items()) == set(target_schema.items()):
         raise ValueError(
             f"Schema does not match expected schema.\n"
-            f"Schema: {data.schema!r}.\n"
-            f"Expected schema: {schema.to_arrow()!r}.",
-        )
-
-    if isinstance(data, pyarrow.dataset.Dataset):
-        fields_with_checks = [field.name for field in schema.fields if field.checks]
-        data = data.to_table(
-            columns=fields_with_checks,
+            f"Schema: {table.schema()!r}.\n"
+            f"Expected schema: {target_schema!r}.",
         )
 
     for field in schema.fields:
         for check in field.checks:
-            if not check(data.column(field.name)):
+            if not check(table[field.name]):
                 raise ValueError(
                     f"Check failed for field {field.name!r}.",
                 )
 
-    return data
+    return table.to_pyarrow()
