@@ -3,6 +3,7 @@ from typing import TypeVar
 import ibis
 import ibis.expr.types
 import pyarrow
+import pyarrow.compute
 import pyarrow.dataset
 import pyarrow.interchange
 
@@ -37,7 +38,14 @@ def validate_pyarrow(
 ) -> _ArrowT:
     """Validate a Table against a schema."""
     if cast:
-        data = data.cast(schema.to_pyarrow())
+        target_schema = schema.to_pyarrow()
+        data = data.select(
+            target_schema.names,
+        ).cast(
+            target_schema,
+        ).select(
+            data.schema.names,
+        )
 
     validate_ibis(ibis.memtable(data), schema, cast=False)
 
@@ -53,7 +61,11 @@ def validate_ibis(
     target_schema = schema.to_ibis()
 
     if cast:
-        data = data.cast(target_schema).select(target_schema.names)
+        data = data.cast(
+            target_schema,
+        ).select(
+            target_schema.names,
+        )
 
     if not set(data.schema().items()) == set(target_schema.items()):
         raise ValueError(
@@ -63,8 +75,8 @@ def validate_ibis(
         )
 
     for field in schema.fields:
-        for check in field.checks:
-            if not check(data[field.name]):
+        if field.check is not None:
+            if not pyarrow.compute.max(field.check(data[field.name])).as_py():
                 raise ValueError(
                     f"Check failed for field {field.name!r}.",
                 )

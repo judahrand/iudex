@@ -15,22 +15,12 @@ def test_validate_pyarrow_pass():
                 "a",
                 pyarrow.int64(),
                 nullable=False,
-                checks=frozenset(
-                    {
-                        iudex.checks.Unique(),
-                        iudex.checks.Greater(0),
-                    }
-                ),
+                check=iudex.checks.Unique() & iudex.checks.Greater(0),
             ),
             iudex.schema.Field(
                 "b",
                 pyarrow.float32(),
-                checks=frozenset(
-                    {
-                        iudex.checks.Greater(0),
-                        iudex.checks.LessEqual(10),
-                    }
-                ),
+                check=iudex.checks.Greater(0) & iudex.checks.LessEqual(10),
             ),
         }
     )
@@ -51,22 +41,12 @@ def test_validate_pyarrow_fail():
             iudex.schema.Field(
                 "a",
                 pyarrow.int64(),
-                checks=frozenset(
-                    {
-                        iudex.checks.Unique(),
-                        iudex.checks.Greater(0),
-                    }
-                ),
+                check=iudex.checks.Unique() & iudex.checks.Greater(0),
             ),
             iudex.schema.Field(
                 "b",
                 pyarrow.float64(),
-                checks=frozenset(
-                    {
-                        iudex.checks.Greater(0),
-                        iudex.checks.LessEqual(10),
-                    }
-                ),
+                check=iudex.checks.Greater(0) & iudex.checks.LessEqual(10),
             ),
         }
     )
@@ -92,22 +72,12 @@ def test_validate_pyarrow_cast():
             iudex.schema.Field(
                 "a",
                 pyarrow.int64(),
-                checks=frozenset(
-                    {
-                        iudex.checks.Unique(),
-                        iudex.checks.Greater(0),
-                    }
-                ),
+                check=iudex.checks.Unique() & iudex.checks.Greater(0),
             ),
             iudex.schema.Field(
                 "b",
                 pyarrow.float32(),
-                checks=frozenset(
-                    {
-                        iudex.checks.Greater(0),
-                        iudex.checks.LessEqual(10),
-                    }
-                ),
+                check=iudex.checks.Greater(0) & iudex.checks.LessEqual(10),
             ),
         }
     )
@@ -138,18 +108,12 @@ def test_validate_dataframe():
                 "a",
                 pyarrow.int64(),
                 nullable=False,
-                checks={
-                    iudex.checks.Unique(),
-                    iudex.checks.Greater(0),
-                },
+                check=iudex.checks.Unique() & iudex.checks.Greater(0),
             ),
             iudex.schema.Field(
                 "b",
                 pyarrow.float32(),
-                checks={
-                    iudex.checks.Greater(0),
-                    iudex.checks.LessEqual(10),
-                },
+                check=iudex.checks.Greater(0) & iudex.checks.LessEqual(10),
             ),
         }
     )
@@ -174,22 +138,12 @@ def test_validate_ibis_pass():
                 "a",
                 pyarrow.int64(),
                 nullable=False,
-                checks=frozenset(
-                    {
-                        iudex.checks.Unique(),
-                        iudex.checks.Greater(0),
-                    }
-                ),
+                check=iudex.checks.Unique() & iudex.checks.Greater(0),
             ),
             iudex.schema.Field(
                 "b",
                 pyarrow.float32(),
-                checks=frozenset(
-                    {
-                        iudex.checks.Greater(0),
-                        iudex.checks.LessEqual(10),
-                    }
-                ),
+                check=iudex.checks.Greater(0) & iudex.checks.LessEqual(10),
             ),
         }
     )
@@ -212,22 +166,12 @@ def test_validate_ibis_fail():
             iudex.schema.Field(
                 "a",
                 pyarrow.int64(),
-                checks=frozenset(
-                    {
-                        iudex.checks.Unique(),
-                        iudex.checks.Greater(0),
-                    }
-                ),
+                check=iudex.checks.Unique() & iudex.checks.Greater(0),
             ),
             iudex.schema.Field(
                 "b",
                 pyarrow.float64(),
-                checks=frozenset(
-                    {
-                        iudex.checks.Greater(0),
-                        iudex.checks.LessEqual(10),
-                    }
-                ),
+                check=iudex.checks.Greater(0) & iudex.checks.LessEqual(10),
             ),
         }
     )
@@ -255,22 +199,12 @@ def test_validate_ibis_cast():
             iudex.schema.Field(
                 "a",
                 pyarrow.int64(),
-                checks=frozenset(
-                    {
-                        iudex.checks.Unique(),
-                        iudex.checks.Greater(0),
-                    }
-                ),
+                check=iudex.checks.Unique() & iudex.checks.Greater(0),
             ),
             iudex.schema.Field(
                 "b",
                 pyarrow.float32(),
-                checks=frozenset(
-                    {
-                        iudex.checks.Greater(0),
-                        iudex.checks.LessEqual(10),
-                    }
-                ),
+                check=iudex.checks.Greater(0) & iudex.checks.LessEqual(10),
             ),
         }
     )

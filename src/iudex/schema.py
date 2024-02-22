@@ -39,7 +39,7 @@ class Field:
     name: str
     data_type: pyarrow.DataType
     nullable: bool = True
-    checks: Set[Check] = dataclasses.field(default_factory=set)
+    check: Check | None = None
 
     def to_pyarrow(self) -> pyarrow.Field:
         """Convert to an PyArrow field."""
