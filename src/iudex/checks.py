@@ -2,9 +2,9 @@ import dataclasses
 from collections.abc import Set
 from typing import Any, Protocol
 
+import ibis.expr.types
 import pyarrow
 import pyarrow.compute
-import ibis.expr.types
 
 
 class Check(Protocol):

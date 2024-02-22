@@ -1,7 +1,7 @@
+import ibis
 import pandas as pd
 import pyarrow
 import pytest
-import ibis.expr.datatypes
 
 import iudex.checks
 import iudex.schema
@@ -165,3 +165,128 @@ def test_validate_dataframe():
         },
     )
     iudex.validate.validate_dataframe(dataframe, schema)
+
+
+def test_validate_ibis_pass():
+    schema = iudex.schema.Schema(
+        {
+            iudex.schema.Field(
+                "a",
+                pyarrow.int64(),
+                nullable=False,
+                checks=frozenset(
+                    {
+                        iudex.checks.Unique(),
+                        iudex.checks.Greater(0),
+                    }
+                ),
+            ),
+            iudex.schema.Field(
+                "b",
+                pyarrow.float32(),
+                checks=frozenset(
+                    {
+                        iudex.checks.Greater(0),
+                        iudex.checks.LessEqual(10),
+                    }
+                ),
+            ),
+        }
+    )
+    table = ibis.memtable(
+        pyarrow.Table.from_pydict(
+            {
+                "a": [1, 2, 3],
+                "b": [4.0, 5.0, 5.0],
+            },
+            schema=schema.to_pyarrow(),
+        ),
+    )
+    res = iudex.validate.validate_ibis(table, schema)
+    assert table == res
+
+
+def test_validate_ibis_fail():
+    schema = iudex.schema.Schema(
+        {
+            iudex.schema.Field(
+                "a",
+                pyarrow.int64(),
+                checks=frozenset(
+                    {
+                        iudex.checks.Unique(),
+                        iudex.checks.Greater(0),
+                    }
+                ),
+            ),
+            iudex.schema.Field(
+                "b",
+                pyarrow.float64(),
+                checks=frozenset(
+                    {
+                        iudex.checks.Greater(0),
+                        iudex.checks.LessEqual(10),
+                    }
+                ),
+            ),
+        }
+    )
+    table = ibis.memtable(
+        pyarrow.Table.from_pydict(
+            {
+                "a": [1, 2, 3],
+                "b": [4.0, 5.0, 5.0],
+            },
+            schema=pyarrow.schema(
+                [
+                    pyarrow.field("a", pyarrow.int64(), nullable=False),
+                    pyarrow.field("b", pyarrow.float32()),
+                ]
+            ),
+        ),
+    )
+    with pytest.raises(ValueError, match=r"Schema does not match expected schema.+"):
+        iudex.validate.validate_ibis(table, schema)
+
+
+def test_validate_ibis_cast():
+    schema = iudex.schema.Schema(
+        {
+            iudex.schema.Field(
+                "a",
+                pyarrow.int64(),
+                checks=frozenset(
+                    {
+                        iudex.checks.Unique(),
+                        iudex.checks.Greater(0),
+                    }
+                ),
+            ),
+            iudex.schema.Field(
+                "b",
+                pyarrow.float32(),
+                checks=frozenset(
+                    {
+                        iudex.checks.Greater(0),
+                        iudex.checks.LessEqual(10),
+                    }
+                ),
+            ),
+        }
+    )
+    table = ibis.memtable(
+        pyarrow.Table.from_pydict(
+            {
+                "a": [1, 2, 3],
+                "b": [4.0, 5.0, 5.0],
+            },
+            schema=pyarrow.schema(
+                [
+                    pyarrow.field("a", pyarrow.int64(), nullable=True),
+                    pyarrow.field("b", pyarrow.float64()),
+                ]
+            ),
+        ),
+    )
+    res = iudex.validate.validate_ibis(table, schema, cast=True)
+    assert set(res.schema()) == set(schema.to_ibis())

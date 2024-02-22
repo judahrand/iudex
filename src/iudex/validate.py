@@ -1,9 +1,10 @@
 from typing import TypeVar
 
+import ibis
+import ibis.expr.types
 import pyarrow
 import pyarrow.dataset
 import pyarrow.interchange
-import ibis
 
 from .dataframe_protocol import DataFrame
 from .schema import Schema
@@ -35,24 +36,37 @@ def validate_pyarrow(
     cast: bool = False,
 ) -> _ArrowT:
     """Validate a Table against a schema."""
+    if cast:
+        data = data.cast(schema.to_pyarrow())
+
+    validate_ibis(ibis.memtable(data), schema, cast=False)
+
+    return data
+
+
+def validate_ibis(
+    data: ibis.expr.types.TableExpr,
+    schema: Schema,
+    cast: bool = False,
+) -> ibis.expr.types.TableExpr:
+    """Validate an Ibis table against a schema."""
     target_schema = schema.to_ibis()
-    table = ibis.memtable(data)
 
     if cast:
-        table = table.cast(target_schema)
+        data = data.cast(target_schema).select(target_schema.names)
 
-    if not set(table.schema().items()) == set(target_schema.items()):
+    if not set(data.schema().items()) == set(target_schema.items()):
         raise ValueError(
             f"Schema does not match expected schema.\n"
-            f"Schema: {table.schema()!r}.\n"
+            f"Schema: {data.schema()!r}.\n"
             f"Expected schema: {target_schema!r}.",
         )
 
     for field in schema.fields:
         for check in field.checks:
-            if not check(table[field.name]):
+            if not check(data[field.name]):
                 raise ValueError(
                     f"Check failed for field {field.name!r}.",
                 )
 
-    return table.to_pyarrow()
+    return data

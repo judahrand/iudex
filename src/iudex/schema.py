@@ -3,8 +3,8 @@ from __future__ import annotations
 import dataclasses
 from collections.abc import Set
 
-import pyarrow
 import ibis.expr.datatypes
+import pyarrow
 
 from .checks import Check
 

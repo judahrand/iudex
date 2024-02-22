@@ -1,6 +1,6 @@
+import ibis
 import pyarrow
 import pytest
-import ibis
 
 import iudex.checks
 
