@@ -13,7 +13,8 @@ def test_validate_pyarrow_pass():
         {
             iudex.schema.Field(
                 "a",
-                ibis.expr.datatypes.Int64(nullable=False),
+                pyarrow.int64(),
+                nullable=False,
                 checks=frozenset(
                     {
                         iudex.checks.Unique(),
@@ -23,7 +24,7 @@ def test_validate_pyarrow_pass():
             ),
             iudex.schema.Field(
                 "b",
-                ibis.expr.datatypes.Float32(),
+                pyarrow.float32(),
                 checks=frozenset(
                     {
                         iudex.checks.Greater(0),
@@ -49,7 +50,7 @@ def test_validate_pyarrow_fail():
         {
             iudex.schema.Field(
                 "a",
-                ibis.expr.datatypes.Int64(nullable=False),
+                pyarrow.int64(),
                 checks=frozenset(
                     {
                         iudex.checks.Unique(),
@@ -59,7 +60,7 @@ def test_validate_pyarrow_fail():
             ),
             iudex.schema.Field(
                 "b",
-                ibis.expr.datatypes.Float64(),
+                pyarrow.float64(),
                 checks=frozenset(
                     {
                         iudex.checks.Greater(0),
@@ -90,7 +91,7 @@ def test_validate_pyarrow_cast():
         {
             iudex.schema.Field(
                 "a",
-                ibis.expr.datatypes.Int64(nullable=False),
+                pyarrow.int64(),
                 checks=frozenset(
                     {
                         iudex.checks.Unique(),
@@ -100,7 +101,7 @@ def test_validate_pyarrow_cast():
             ),
             iudex.schema.Field(
                 "b",
-                ibis.expr.datatypes.Float32(),
+                pyarrow.float32(),
                 checks=frozenset(
                     {
                         iudex.checks.Greater(0),
@@ -135,7 +136,7 @@ def test_validate_dataframe():
         {
             iudex.schema.Field(
                 "a",
-                ibis.expr.datatypes.Int64(nullable=False),
+                pyarrow.int64(),
                 nullable=False,
                 checks={
                     iudex.checks.Unique(),
@@ -144,7 +145,7 @@ def test_validate_dataframe():
             ),
             iudex.schema.Field(
                 "b",
-                ibis.expr.datatypes.Float32(),
+                pyarrow.float32(),
                 checks={
                     iudex.checks.Greater(0),
                     iudex.checks.LessEqual(10),

@@ -18,7 +18,13 @@ class Schema:
     def to_ibis(self) -> ibis.expr.schema.Schema:
         """Convert to an Ibis schema."""
         return ibis.Schema(
-            {field.name: field.data_type for field in self.fields},
+            {
+                field.name: ibis.expr.datatypes.DataType.from_pyarrow(
+                    field.data_type,
+                    field.nullable,
+                )
+                for field in self.fields
+            },
         )
 
     def to_pyarrow(self) -> pyarrow.Schema:
@@ -31,13 +37,14 @@ class Field:
     """A field in a schema."""
 
     name: str
-    data_type: ibis.expr.datatypes.DataType
+    data_type: pyarrow.DataType
+    nullable: bool = True
     checks: Set[Check] = dataclasses.field(default_factory=set)
 
     def to_pyarrow(self) -> pyarrow.Field:
         """Convert to an PyArrow field."""
         return pyarrow.field(
             self.name,
-            self.data_type.to_pyarrow(),
-            nullable=self.data_type.nullable,
+            self.data_type,
+            nullable=self.nullable,
         )

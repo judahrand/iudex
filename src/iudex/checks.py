@@ -88,3 +88,11 @@ class NotIn(Check):
         return pyarrow.compute.all(
             column.notin(ibis.literal(self.values)).min().to_pyarrow(),
         ).as_py()
+
+
+@dataclasses.dataclass(frozen=True)
+class Any_(Check):
+    checks: Set[Check]
+
+    def __call__(self, column: ibis.expr.types.Column) -> bool:
+        return any(check(column) for check in self.checks)
