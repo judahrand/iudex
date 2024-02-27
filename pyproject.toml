@@ -16,6 +16,7 @@ ibis-framework = {extras = ["duckdb"], version = "^8.0.0"}
 ruff = "^0.1.6"
 pytest = "^7.4.3"
 pandas = "^2.2.0"
+pytest-cov = "^4.1.0"
 
 [build-system]
 requires = ["poetry-core"]
