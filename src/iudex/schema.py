@@ -3,7 +3,6 @@ from __future__ import annotations
 import dataclasses
 from collections.abc import Set
 
-import ibis.expr.datatypes
 import pyarrow
 
 from .checks import Check
@@ -14,18 +13,6 @@ class Schema:
     """A schema for a DataFrame."""
 
     fields: Set[Field]
-
-    def to_ibis(self) -> ibis.expr.schema.Schema:
-        """Convert to an Ibis schema."""
-        return ibis.Schema(
-            {
-                field.name: ibis.expr.datatypes.DataType.from_pyarrow(
-                    field.data_type,
-                    field.nullable,
-                )
-                for field in self.fields
-            },
-        )
 
     def to_pyarrow(self) -> pyarrow.Schema:
         """Convert to a PyArrow schema."""
