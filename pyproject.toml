@@ -17,6 +17,33 @@ ruff = "^0.1.6"
 pytest = "^7.4.3"
 pandas = "^2.2.0"
 pytest-cov = "^4.1.0"
+pandas-stubs = "^2.2.0.240218"
+mypy = "^1.8.0"
+
+[tool.mypy]
+warn_incomplete_stub = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_unused_configs = true
+
+files = ["iudex", "tests"]
+
+no_implicit_optional = true
+
+strict_optional = true
+strict_equality = true
+
+disallow_any_generics = true
+
+implicit_reexport = false
+
+[[tool.mypy.overrides]]
+module = "ibis.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pyarrow.*"
+ignore_missing_imports = true
 
 [build-system]
 requires = ["poetry-core"]
