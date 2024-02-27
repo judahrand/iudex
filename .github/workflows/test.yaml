@@ -1,0 +1,46 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install poetry
+        run: pipx install poetry
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+          cache: 'poetry'
+
+      - run: poetry install --all-extras
+
+      - run: poetry run ruff check --diff src/ tests/
+
+      - run: poetry run ruff format --diff src/ tests/
+
+      - run: poetry run mypy src/ tests/
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install poetry
+        run: pipx install poetry
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+          cache: 'poetry'
+
+      - run: poetry install --all-extras
+
+      - run: poetry run pytest --cov=iudex --cov-report term-missing
