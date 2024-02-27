@@ -78,7 +78,7 @@ def test_validate_dataframe():
             iudex.schema.Field(
                 "a",
                 pyarrow.int64(),
-                nullable=False,
+                nullable=True,
                 check=iudex.checks.Less(1000) & iudex.checks.Greater(0),
             ),
             iudex.schema.Field(
