@@ -39,12 +39,16 @@ def validate_pyarrow(
     """Validate a Table against a schema."""
     if cast:
         target_schema = schema.to_pyarrow()
-        data = data.select(
-            target_schema.names,
-        ).cast(
-            target_schema,
-        ).select(
-            data.schema.names,
+        data = (
+            data.select(
+                target_schema.names,
+            )
+            .cast(
+                target_schema,
+            )
+            .select(
+                data.schema.names,
+            )
         )
 
     validate_ibis(ibis.memtable(data), schema, cast=False)
