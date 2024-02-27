@@ -10,7 +10,7 @@ import iudex.errors
 
 def test_validate_pyarrow_pass():
     schema = iudex.schema.Schema(
-        {
+        [
             iudex.schema.Field(
                 "a",
                 pyarrow.int64(),
@@ -22,7 +22,7 @@ def test_validate_pyarrow_pass():
                 pyarrow.float32(),
                 check=iudex.checks.Greater(0) & iudex.checks.LessEqual(10),
             ),
-        }
+        ],
     )
     table = pyarrow.Table.from_pydict(
         {
@@ -37,7 +37,7 @@ def test_validate_pyarrow_pass():
 
 def test_validate_pyarrow_fail():
     schema = iudex.schema.Schema(
-        {
+        [
             iudex.schema.Field(
                 "a",
                 pyarrow.int64(),
@@ -48,7 +48,7 @@ def test_validate_pyarrow_fail():
                 pyarrow.float64(),
                 check=iudex.checks.Greater(0) & iudex.checks.LessEqual(10),
             ),
-        }
+        ],
     )
     table = pyarrow.Table.from_pydict(
         {
@@ -74,7 +74,7 @@ def test_validate_pyarrow_fail():
 )
 def test_validate_dataframe():
     schema = iudex.schema.Schema(
-        {
+        [
             iudex.schema.Field(
                 "a",
                 pyarrow.int64(),
@@ -86,7 +86,7 @@ def test_validate_dataframe():
                 pyarrow.float32(),
                 check=iudex.checks.Greater(0) & iudex.checks.LessEqual(10),
             ),
-        }
+        ],
     )
     dataframe = pd.DataFrame(
         {

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from collections.abc import Set
+from collections.abc import Sequence
 
 import pyarrow
 
@@ -12,7 +12,7 @@ from .checks import Check
 class Schema:
     """A schema for a DataFrame."""
 
-    fields: Set[Field]
+    fields: Sequence[Field]
 
     def to_pyarrow(self) -> pyarrow.Schema:
         """Convert to a PyArrow schema."""
