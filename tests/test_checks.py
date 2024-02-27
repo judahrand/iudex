@@ -31,6 +31,16 @@ def test_any():
     assert check(ds, "a").to_pylist() == [True, False, True]
 
 
+def test_unique():
+    check = iudex.checks.Unique()
+
+    ds = make_dataset([1, 2, 3])
+    assert check(ds, "a").to_pylist() == [True, True, True]
+
+    ds = make_dataset([1, 2, 1])
+    assert check(ds, "a").to_pylist() == [False, True, False]
+
+
 def test_greater():
     check = iudex.checks.Greater(0)
 

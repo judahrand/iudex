@@ -8,6 +8,7 @@ from typing import Any
 
 import pyarrow
 import pyarrow.compute
+import pyarrow.acero
 import pyarrow.dataset
 
 
@@ -54,6 +55,62 @@ class Any_(Check):
         return functools.reduce(
             pyarrow.compute.or_,
             (check(data, column) for check in self.checks),
+        )
+
+
+@dataclasses.dataclass(frozen=True)
+class Unique(Check):
+    def __call__(
+        self,
+        data: pyarrow.dataset.Dataset,
+        column: str,
+    ) -> pyarrow.ChunkedArray:
+        # Use Acero directly since Datasets do not have a `.gourp_by` method.
+        data_source = pyarrow.acero._dataset_to_decl(data, use_threads=True)
+        declaration = pyarrow.acero.Declaration.from_sequence(
+            [
+                data_source,
+                pyarrow.acero.Declaration(
+                    "aggregate",
+                    pyarrow.acero.AggregateNodeOptions(
+                        [
+                            (
+                                column,  # target column
+                                "hash_count",  # aggregate function
+                                None,  # aggregate function options
+                                "count",  # output field name
+                            )
+                        ],
+                        keys=column,
+                    ),
+                ),
+                pyarrow.acero.Declaration(
+                    "project",
+                    pyarrow.acero.ProjectNodeOptions(
+                        [
+                            pyarrow.compute.field(column),
+                            pyarrow.compute.field("count") == 1,
+                        ],
+                        [
+                            column,
+                            "unique",
+                        ],
+                    ),
+                ),
+            ],
+        )
+        return (
+            data.join(
+                declaration.to_table(use_threads=True),
+                column,
+                join_type="left outer",
+            )
+            .to_table(
+                columns=["unique"],
+            )
+            .column(
+                "unique",
+            )
         )
 
 
