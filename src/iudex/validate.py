@@ -7,6 +7,7 @@ import pyarrow.interchange
 
 from .dataframe_protocol import DataFrame
 from .schema import Schema
+from .errors import SchemaError, ValidationError
 
 _ArrowT = TypeVar(
     "_ArrowT",
@@ -37,7 +38,7 @@ def validate_pyarrow(
     target_schema = schema.to_pyarrow()
 
     if data.schema != target_schema:
-        raise ValueError(
+        raise SchemaError(
             f"Schema does not match expected schema.\n"
             f"Schema: {data.schema!r}.\n"
             f"Expected schema: {target_schema!r}.",
@@ -46,7 +47,7 @@ def validate_pyarrow(
     for field in schema.fields:
         if field.check is not None:
             if not pyarrow.compute.max(field.check(data[field.name])).as_py():
-                raise ValueError(
+                raise ValidationError(
                     f"Check failed for field {field.name!r}.",
                 )
 

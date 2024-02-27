@@ -5,6 +5,7 @@ import pytest
 import iudex.checks
 import iudex.schema
 import iudex.validate
+import iudex.errors
 
 
 def test_validate_pyarrow_pass():
@@ -61,7 +62,9 @@ def test_validate_pyarrow_fail():
             ]
         ),
     )
-    with pytest.raises(ValueError, match=r"Schema does not match expected schema.+"):
+    with pytest.raises(
+        iudex.errors.SchemaError, match=r"Schema does not match expected schema.+"
+    ):
         iudex.validate.validate_pyarrow(table, schema)
 
 
