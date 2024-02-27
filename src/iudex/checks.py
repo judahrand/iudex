@@ -8,13 +8,16 @@ from typing import Any
 
 import pyarrow
 import pyarrow.compute
+import pyarrow.dataset
 
 
 class Check(ABC):
     @abstractmethod
     def __call__(
-        self, column: pyarrow.Array | pyarrow.ChunkedArray
-    ) -> pyarrow.BooleanArray:
+        self,
+        data: pyarrow.dataset.Dataset,
+        column: str,
+    ) -> pyarrow.ChunkedArray:
         ...
 
     def __and__(self, other: Check) -> Check:
@@ -29,11 +32,13 @@ class All(Check):
     checks: Set[Check]
 
     def __call__(
-        self, column: pyarrow.Array | pyarrow.ChunkedArray
-    ) -> pyarrow.BooleanArray:
+        self,
+        data: pyarrow.dataset.Dataset,
+        column: str,
+    ) -> pyarrow.ChunkedArray:
         return functools.reduce(
             pyarrow.compute.and_,
-            (check(column) for check in self.checks),
+            (check(data, column) for check in self.checks),
         )
 
 
@@ -42,11 +47,13 @@ class Any_(Check):
     checks: Set[Check]
 
     def __call__(
-        self, column: pyarrow.Array | pyarrow.ChunkedArray
-    ) -> pyarrow.BooleanArray:
+        self,
+        data: pyarrow.dataset.Dataset,
+        column: str,
+    ) -> pyarrow.ChunkedArray:
         return functools.reduce(
             pyarrow.compute.or_,
-            (check(column) for check in self.checks),
+            (check(data, column) for check in self.checks),
         )
 
 
@@ -55,9 +62,14 @@ class Greater(Check):
     value: Any
 
     def __call__(
-        self, column: pyarrow.Array | pyarrow.ChunkedArray
-    ) -> pyarrow.BooleanArray:
-        return pyarrow.compute.greater(column, self.value)
+        self,
+        data: pyarrow.dataset.Dataset,
+        column: str,
+    ) -> pyarrow.ChunkedArray:
+        arrays = []
+        for batch in data.to_batches(columns=[column]):
+            arrays.append(pyarrow.compute.greater(batch.column(0), self.value))
+        return pyarrow.chunked_array(arrays)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -65,9 +77,14 @@ class GreaterEqual(Check):
     value: Any
 
     def __call__(
-        self, column: pyarrow.Array | pyarrow.ChunkedArray
-    ) -> pyarrow.BooleanArray:
-        return pyarrow.compute.greater_equal(column, self.value)
+        self,
+        data: pyarrow.dataset.Dataset,
+        column: str,
+    ) -> pyarrow.ChunkedArray:
+        arrays = []
+        for batch in data.to_batches(columns=[column]):
+            arrays.append(pyarrow.compute.greater_equal(batch.column(0), self.value))
+        return pyarrow.chunked_array(arrays)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -75,9 +92,14 @@ class Less(Check):
     value: Any
 
     def __call__(
-        self, column: pyarrow.Array | pyarrow.ChunkedArray
-    ) -> pyarrow.BooleanArray:
-        return pyarrow.compute.less(column, self.value)
+        self,
+        data: pyarrow.dataset.Dataset,
+        column: str,
+    ) -> pyarrow.ChunkedArray:
+        arrays = []
+        for batch in data.to_batches(columns=[column]):
+            arrays.append(pyarrow.compute.less(batch.column(0), self.value))
+        return pyarrow.chunked_array(arrays)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -85,9 +107,14 @@ class LessEqual(Check):
     value: Any
 
     def __call__(
-        self, column: pyarrow.Array | pyarrow.ChunkedArray
-    ) -> pyarrow.BooleanArray:
-        return pyarrow.compute.less_equal(column, self.value)
+        self,
+        data: pyarrow.dataset.Dataset,
+        column: str,
+    ) -> pyarrow.ChunkedArray:
+        arrays = []
+        for batch in data.to_batches(columns=[column]):
+            arrays.append(pyarrow.compute.less_equal(batch.column(0), self.value))
+        return pyarrow.chunked_array(arrays)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -99,9 +126,16 @@ class IsIn(Check):
             raise ValueError("Value set must contain at least one value.")
 
     def __call__(
-        self, column: pyarrow.Array | pyarrow.ChunkedArray
-    ) -> pyarrow.BooleanArray:
-        return pyarrow.compute.is_in(column, pyarrow.array(self.values))
+        self,
+        data: pyarrow.dataset.Dataset,
+        column: str,
+    ) -> pyarrow.ChunkedArray:
+        arrays = []
+        for batch in data.to_batches(columns=[column]):
+            arrays.append(
+                pyarrow.compute.is_in(batch.column(0), pyarrow.array(self.values)),
+            )
+        return pyarrow.chunked_array(arrays)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -113,6 +147,8 @@ class NotIn(Check):
             raise ValueError("Value set must contain at least one value.")
 
     def __call__(
-        self, column: pyarrow.Array | pyarrow.ChunkedArray
-    ) -> pyarrow.BooleanArray:
-        return pyarrow.compute.invert(IsIn(self.values)(column))
+        self,
+        data: pyarrow.dataset.Dataset,
+        column: str,
+    ) -> pyarrow.ChunkedArray:
+        return pyarrow.compute.invert(IsIn(self.values)(data, column))

@@ -35,9 +35,16 @@ def validate_pyarrow(
     schema: Schema,
 ) -> _ArrowT:
     """Validate a Table against a schema."""
+    # Convert to a dataset if necessary so that we can focus on
+    # one API for validation.
+    if isinstance(data, pyarrow.dataset.Dataset):
+        dataset = data
+    else:
+        dataset = pyarrow.dataset.dataset(data)
+
     target_schema = schema.to_pyarrow()
 
-    if data.schema != target_schema:
+    if dataset.schema != target_schema:
         raise SchemaError(
             f"Schema does not match expected schema.\n"
             f"Schema: {data.schema!r}.\n"
@@ -46,7 +53,7 @@ def validate_pyarrow(
 
     for field in schema.fields:
         if field.check is not None:
-            if not pyarrow.compute.max(field.check(data[field.name])).as_py():
+            if not pyarrow.compute.max(field.check(dataset, field.name)).as_py():
                 raise ValidationError(
                     f"Check failed for field {field.name!r}.",
                 )
