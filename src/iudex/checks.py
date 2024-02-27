@@ -49,8 +49,7 @@ class Any_(Check):
 class Unique(Check):
     def __call__(self, column: ibis.expr.types.Column) -> pyarrow.BooleanArray:
         column = column.name("col")
-        unique_map = column.value_counts(
-        ).select(
+        unique_map = column.value_counts().select(
             "col",
             unique=ibis._["col_count"] == 1,
         )
